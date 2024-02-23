@@ -1,0 +1,3 @@
+[workspace]
+members = [ "sly_static", "sly_static_macros" ]
+resolver = "2"
