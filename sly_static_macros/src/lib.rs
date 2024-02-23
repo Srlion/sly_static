@@ -88,10 +88,10 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 			}
 		}
 
-		use sly_static::linkme;
 		#[used]
 		#[allow(non_upper_case_globals)]
-		#[linkme::distributed_slice(crate::#sly_static_functions_name)]
+		#[sly_static::linkme::distributed_slice(crate::#sly_static_functions_name)]
+		#[linkme(crate = sly_static::linkme)]
 		static #initialize_function_name: fn() = #ident::set;
 	})
 	.into()
@@ -117,8 +117,8 @@ pub fn sly_main(_: TokenStream, function: TokenStream) -> TokenStream {
 	let sly_static_functions_name = sly_static_functions_ident();
 
 	(quote! {
-		use sly_static::linkme;
-		#[linkme::distributed_slice]
+		#[sly_static::linkme::distributed_slice]
+		#[linkme(crate = sly_static::linkme)]
 		pub static #sly_static_functions_name: [fn()];
 		#(#attrs)*
 		#vis #sig {
