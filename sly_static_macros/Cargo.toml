@@ -1,10 +1,10 @@
 [package]
 name = "sly_static_macros"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 license = "MIT"
 description = "macros for sly_static"
-authors = [ "Srlion <srlion32@gmail.com>" ]
+authors = ["Srlion <srlion32@gmail.com>"]
 repository = "https://github.com/Srlion/sly_static"
 
 [lib]
