@@ -90,7 +90,7 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 
 		#[used]
 		#[allow(non_upper_case_globals)]
-		#[sly_static::linkme::distributed_slice(crate::#sly_static_functions_name)]
+		#[crate::sly_static::linkme::distributed_slice(crate::#sly_static_functions_name)]
 		static #initialize_function_name: fn() = #ident::set;
 	})
 	.into()
@@ -116,7 +116,7 @@ pub fn sly_main(_: TokenStream, function: TokenStream) -> TokenStream {
 	let sly_static_functions_name = sly_static_functions_ident();
 
 	(quote! {
-		#[sly_static::linkme::distributed_slice]
+		#[crate::sly_static::linkme::distributed_slice]
 		pub static #sly_static_functions_name: [fn()];
 
 		#(#attrs)*
