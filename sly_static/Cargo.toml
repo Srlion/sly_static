@@ -1,6 +1,6 @@
 [package]
 name = "sly_static"
-version = "1.0.4"
+version = "1.0.5"
 authors = ["Srlion <srlion32@gmail.com>"]
 edition = "2021"
 license = "MIT"
@@ -11,5 +11,5 @@ readme = "../README.md"
 categories = ["no-std", "rust-patterns", "memory-management"]
 
 [dependencies]
-sly_static_macros = { path = "../sly_static_macros", version = "1.0.4" }
+sly_static_macros = { path = "../sly_static_macros", version = "1.0.5" }
 linkme = "0.3.23"
