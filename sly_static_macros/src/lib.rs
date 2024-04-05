@@ -72,7 +72,10 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 
 		impl #ident<#ty> {
 			fn set() {
-				let val = Some(#expr);
+				let val_func = || -> #ty {
+					#expr
+				};
+				let val = Some(val_func);
 				unsafe {
 					#storage_ident_name = val;
 				}
