@@ -42,7 +42,7 @@ dependencies = [
 
 [[package]]
 name = "sly_static"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "linkme",
  "sly_static_macros",
@@ -50,7 +50,7 @@ dependencies = [
 
 [[package]]
 name = "sly_static_macros"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "quote",
  "syn",
