@@ -57,6 +57,7 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 
 	// The generated function
 	(quote! {
+		#[allow(non_upper_case_globals)]
 		static mut #storage_ident_name: Option<#ty> = None;
 
 		#[doc(hidden)]
