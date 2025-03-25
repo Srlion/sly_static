@@ -1,6 +1,6 @@
 use proc_macro::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_macro_input, parse_str, Ident, ItemStatic};
+use syn::{parse_macro_input, parse_str, punctuated::Punctuated, Ident, ItemStatic, Token};
 
 fn sly_static_functions_ident() -> Ident {
 	Ident::new("__SLY_STATIC_FUNCTIONS", Span::call_site().into())
@@ -27,7 +27,31 @@ fn sly_static_functions_ident() -> Ident {
 //
 // Source: https://github.com/mmastrac/rust-ctor
 #[proc_macro_attribute]
-pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
+pub fn sly_static(attr: TokenStream, function: TokenStream) -> TokenStream {
+	// Parse attribute tokens as a comma-separated list of idents.
+	let args = if attr.is_empty() {
+		Vec::new()
+	} else {
+		parse_macro_input!(attr with Punctuated::<Ident, Token![,]>::parse_terminated)
+			.into_iter()
+			.collect::<Vec<_>>()
+	};
+
+	// Allowed values are only "Send" and "Sync".
+	let mut traits = Vec::new();
+	for arg in args {
+		let arg_str = arg.to_string();
+		if arg_str != "Send" && arg_str != "Sync" {
+			return TokenStream::from(quote! {
+				compile_error!("Expected 'Send' and/or 'Sync' as arguments to #[sly_static]");
+			});
+		}
+		traits.push(arg_str);
+	}
+	// Remove duplicate entries.
+	traits.sort();
+	traits.dedup();
+
 	let item_static = parse_macro_input!(function as ItemStatic);
 	let syn::ItemStatic {
 		ident,
@@ -47,16 +71,29 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 
 	let sly_static_functions_name = sly_static_functions_ident();
 
-	let storage_ident_name =
-		syn::parse_str::<Ident>(format!("{}_____rust_sly_static_storage", ident).as_ref())
-			.expect("Unable to create storage identifier");
+	let storage_ident_name = parse_str::<Ident>(&format!("{}_____rust_sly_static_storage", ident))
+		.expect("Unable to create storage identifier");
 
 	let initialize_function_name =
-		parse_str::<Ident>(format!("{}_____rust_sly_static_initialize", ident).as_ref())
+		parse_str::<Ident>(&format!("{}_____rust_sly_static_initialize", ident))
 			.expect("Unable to create function identifier");
 
-	// The generated function
-	(quote! {
+	let trait_impls: Vec<_> = traits
+		.into_iter()
+		.map(|t| {
+			if t == "Sync" {
+				quote! {
+					unsafe impl ::core::marker::Sync for #ident<#ty> {}
+				}
+			} else {
+				quote! {
+					unsafe impl ::core::marker::Send for #ident<#ty> {}
+				}
+			}
+		})
+		.collect();
+
+	let expanded = quote! {
 		#[allow(non_upper_case_globals)]
 		static mut #storage_ident_name: Option<#ty> = None;
 
@@ -65,6 +102,8 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 		#vis struct #ident<T> {
 			_data: ::core::marker::PhantomData<T>
 		}
+
+		#(#trait_impls)*
 
 		#(#attrs)*
 		#vis static #ident: #ident<#ty> = #ident {
@@ -97,8 +136,9 @@ pub fn sly_static(_: TokenStream, function: TokenStream) -> TokenStream {
 		#[sly_static::linkme::distributed_slice(crate::#sly_static_functions_name)]
 		#[linkme(crate = sly_static::linkme)]
 		static #initialize_function_name: fn() = #ident::set;
-	})
-	.into()
+	};
+
+	TokenStream::from(expanded)
 }
 
 #[proc_macro_attribute]
